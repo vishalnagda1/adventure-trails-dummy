@@ -17,7 +17,7 @@ const renderHTML = (path, request, response) => {
 }
 
 const server = http.createServer((request, response) => {
-    const {pathname} = url.parse(request.url);
+    const {pathname, query} = url.parse(request.url);
     response.writeHead(200, {
         'Content-Type': 'text/html'
     });
@@ -42,6 +42,30 @@ const server = http.createServer((request, response) => {
                 response.end();
             }
         })
+    }
+    else if(pathname === '/details') {
+        const {package} = querystring.parse(query);
+        renderHTML(`./data/packages/${package}.html`, request, response)
+    }
+    else if(pathname === '/save_booking') {
+        let data = "";
+        request.on("data", chunk => {
+            data += chunk;
+        });
+        request.on("end", () => {
+            const {name, email, package} = querystring.parse(data);
+            fs.appendFile(`./data/booking/data.html`, `<tr><td>${name}</td><td>${package}</td><td>${email}</td></tr>`, err => {
+                if(err) throw err;
+                response.end(`<h3>Your booking is successfully recorded.</h3>`);
+            });
+        });
+    }
+    else if (pathname === '/booking_view') {
+        fs.readFile('./data/booking/data.html', (err, data) => {
+            if(err) throw err;
+            const bookingData = `<h1>Booking List</h1><br /><table><tr><th>Name</th><th>Package</th><th>eMail</th></tr>${data}</table>`;
+            response.end(bookingData); 
+        });
     }
     else response.end();
 });

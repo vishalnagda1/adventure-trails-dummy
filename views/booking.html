@@ -9,5 +9,34 @@
             <a href="/media">Gallery</a>
             <a href="/contact_us">Contact Us</a>
         </center>
+        <br />
+        <br />
+        <form action="/save_booking" method="POST">
+            <table>
+                <tr>
+                    <td>Package</td>
+                    <td>
+                        <select name="package">
+                            <option value="Rock Climbing">Rock Climbing</option>
+                            <option value="Water Sport">Water Sport</option>
+                            <option value="Jumping Adventure">Jumping Adventure</option>
+                            <option value="Para Gliding">Para Gliding</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Name</td>
+                    <td><input type="text" name="name" value="" /></td>
+                </tr>
+                <tr>
+                    <td>eMail</td>
+                    <td><input type="email" name="email" value="" /></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><input type="submit" value="Book" /></td>
+                </tr>
+            </table>
+        </form>
     </body>
 </html>
