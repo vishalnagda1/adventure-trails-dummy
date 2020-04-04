@@ -1,0 +1,1 @@
+exports.authLogin = (username, password) => username === "admin" & password === "admin";
