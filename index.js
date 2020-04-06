@@ -2,6 +2,7 @@ const http = require("http");
 const url = require("url");
 const fs = require("fs");
 const querystring = require("querystring");
+const zlib = require("zlib");
 const admin = require("./models/adminAuth");
 
 const renderHTML = (path, request, response) => {
@@ -18,9 +19,6 @@ const renderHTML = (path, request, response) => {
 
 const server = http.createServer((request, response) => {
     const {pathname, query} = url.parse(request.url);
-    response.writeHead(200, {
-        'Content-Type': 'text/html'
-    });
     if(pathname === '/') renderHTML('./views/home.html', request, response);
     else if(pathname === '/packages') renderHTML('./views/package.html', request, response);
     else if(pathname === '/online_booking') renderHTML('./views/booking.html', request, response);
@@ -66,6 +64,25 @@ const server = http.createServer((request, response) => {
             const bookingData = `<h1>Booking List</h1><br /><table><tr><th>Name</th><th>Package</th><th>eMail</th></tr>${data}</table>`;
             response.end(bookingData); 
         });
+    }
+    else if (pathname === '/download_packages') {
+        const readStream = fs.createReadStream("./data/download/packages.txt");
+        const writeStream = fs.createWriteStream("./output/packages.gz");
+        readStream.pipe(zlib.createGzip()).pipe(writeStream)
+        fs.readFile("./output/packages.gz", (err, content) => {
+            if (err) {
+              response.writeHead(400, { "Content-type": "text/html" });
+              console.log(err);
+              response.end("No such file");
+            } else {
+              //specify Content will be an attachment
+              response.setHeader(
+                "Content-disposition",
+                "attachment; filename=packages.gz"
+              );
+              response.end(content);
+            }
+          });
     }
     else response.end();
 });
