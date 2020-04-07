@@ -4,7 +4,11 @@ const fs = require("fs");
 const querystring = require("querystring");
 const zlib = require("zlib");
 const net = require("net");
+const mongoose = require("mongoose");
 const admin = require("./models/adminAuth");
+const booking = require("./models/bookings");
+
+mongoose.connect("mongodb+srv://m001-student:m001-mongodb-basics@sandbox-4gbxy.mongodb.net/users?retryWrites=true&w=majority", { useNewUrlParser: true });
 
 const tcpServer = net.createServer(client => {
     console.log("Client connected");
@@ -49,13 +53,15 @@ const server = http.createServer((request, response) => {
         });
         request.on("end", () => {
             const {username, password} = querystring.parse(data);
-            if(admin.authLogin(username, password)) {
-                renderHTML('./views/admin/index.html', request, response);
-            }
-            else {
-                response.writeHead(307, {"Location": "/login"});
-                response.end();
-            }
+            admin.authLogin(username, password, (err, user) => {
+                if (err || !user || user.length < 1) {
+                    response.writeHead(307, {"Location": "/login"});
+                    response.end();
+                } else {
+                    console.log(user);
+                    renderHTML('./views/admin/index.html', request, response);
+                }
+            });
         })
     }
     else if(pathname === '/details') {
@@ -69,10 +75,14 @@ const server = http.createServer((request, response) => {
         });
         request.on("end", () => {
             const {name, email, package} = querystring.parse(data);
-            fs.appendFile(`./data/booking/data.html`, `<tr><td>${name}</td><td>${package}</td><td>${email}</td></tr>`, err => {
-                if(err) throw err;
+            booking.save({name, email, package}).then(result => {
+                console.log(result);
                 response.end(`<h3>Your booking is successfully recorded.</h3>`);
             });
+            // fs.appendFile(`./data/booking/data.html`, `<tr><td>${name}</td><td>${package}</td><td>${email}</td></tr>`, err => {
+            //     if(err) throw err;
+            //     response.end(`<h3>Your booking is successfully recorded.</h3>`);
+            // });
         });
     }
     else if (pathname === '/booking_view') {
