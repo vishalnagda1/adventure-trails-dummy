@@ -3,7 +3,24 @@ const url = require("url");
 const fs = require("fs");
 const querystring = require("querystring");
 const zlib = require("zlib");
+const net = require("net");
 const admin = require("./models/adminAuth");
+
+const tcpServer = net.createServer(client => {
+    console.log("Client connected");
+
+    client.on("data", data => {
+        client.write(data);
+    });
+
+    client.on("close", () => {
+        console.log("Client disconnected");
+    });
+});
+
+tcpServer.listen(5000, () => {
+    console.log("TCP server listening on port 5000");
+});
 
 const renderHTML = (path, request, response) => {
     fs.readFile(path, (error, data)=>{
@@ -83,6 +100,17 @@ const server = http.createServer((request, response) => {
               response.end(content);
             }
           });
+    } else if (pathname === '/chat') {
+        const {message} = querystring.parse(query);
+        console.log(`Message is ${message}`);
+        const client = net.connect({port: 5000}, () => {
+            client.write(message);
+            renderHTML('./views/home.html', request, response);
+            client.end();
+        })
+        client.on("end", () => {
+            console.log("Client disconnet to server");
+        });
     }
     else response.end();
 });
